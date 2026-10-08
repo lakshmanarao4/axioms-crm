@@ -1,0 +1,101 @@
+@model AcxiomCRM.Models.Entities.Customer
+@{
+    ViewData["Title"] = "Customer Profile";
+    Layout = "_Layout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="fw-bold mb-0">@Model.CustomerName</h3>
+        <p class="text-muted small mb-0"><span class="badge bg-secondary font-monospace">@Model.CustomerCode</span> &bull; Created on @Model.CreatedDate.ToString("MMMM dd, yyyy")</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.CustomerId" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+            <i class="bi bi-pencil"></i> Edit Profile
+        </a>
+        <a asp-controller="Opportunity" asp-action="Create" asp-route-customerId="@Model.CustomerId" class="btn btn-primary btn-sm rounded-pill px-3">
+            <i class="bi bi-plus-circle"></i> New Deal
+        </a>
+        <a asp-controller="FollowUp" asp-action="Create" asp-route-customerId="@Model.CustomerId" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-calendar-plus"></i> Schedule Follow-Up
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white fw-bold"><i class="bi bi-info-circle me-2 text-primary"></i>Company Information</div>
+            <div class="card-body">
+                <dl class="row mb-0 small">
+                    <dt class="col-sm-5 text-muted">Company:</dt>
+                    <dd class="col-sm-7 fw-semibold">@(string.IsNullOrWhiteSpace(Model.CompanyName) ? "Individual" : Model.CompanyName)</dd>
+
+                    <dt class="col-sm-5 text-muted">Email:</dt>
+                    <dd class="col-sm-7"><a href="mailto:@Model.Email">@Model.Email</a></dd>
+
+                    <dt class="col-sm-5 text-muted">Phone:</dt>
+                    <dd class="col-sm-7">@Model.Phone</dd>
+
+                    <dt class="col-sm-5 text-muted">Location:</dt>
+                    <dd class="col-sm-7">@Model.Address, @Model.City, @Model.State</dd>
+
+                    <dt class="col-sm-5 text-muted">Status:</dt>
+                    <dd class="col-sm-7">
+                        <span class="badge @(Model.Status == "Active" ? "bg-success" : "bg-secondary")">@Model.Status</span>
+                    </dd>
+
+                    <dt class="col-sm-5 text-muted">Owner:</dt>
+                    <dd class="col-sm-7">@Model.CreatedBy</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Opportunities -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <span class="fw-bold"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Opportunities (@Model.Opportunities.Count)</span>
+                <span class="small text-muted">Total: @Model.Opportunities.Sum(o => o.Amount).ToString("C0")</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th>Opportunity</th>
+                                <th>Stage</th>
+                                <th>Amount</th>
+                                <th>Probability</th>
+                                <th>Close Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.Opportunities.Any())
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center py-3 text-muted">No opportunities registered.</td>
+                                </tr>
+                            }
+                            @foreach (var opp in Model.Opportunities)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">
+                                        <a asp-controller="Opportunity" asp-action="Details" asp-route-id="@opp.OpportunityId" class="text-decoration-none">
+                                            @opp.OpportunityName
+                                        </a>
+                                    </td>
+                                    <td><span class="badge bg-primary bg-opacity-10 text-primary">@opp.Stage</span></td>
+                                    <td>@opp.Amount.ToString("C0")</td>
+                                    <td>@opp.Probability%</td>
+                                    <td class="small">@opp.ExpectedCloseDate.ToString("MMM dd, yyyy")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

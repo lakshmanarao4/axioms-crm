@@ -1,0 +1,106 @@
+@model AcxiomCRM.Models.Entities.Lead
+@{
+    ViewData["Title"] = "Lead Profile";
+    Layout = "_Layout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="fw-bold mb-0">@Model.LeadName</h3>
+        <p class="text-muted small mb-0"><span class="badge bg-secondary font-monospace">@Model.LeadCode</span> &bull; Created on @Model.CreatedDate.ToString("MMMM dd, yyyy")</p>
+    </div>
+    <div class="d-flex gap-2">
+        @if (Model.Status != "Converted")
+        {
+            <a asp-action="Edit" asp-route-id="@Model.LeadId" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                <i class="bi bi-pencil"></i> Edit Lead
+            </a>
+        }
+        @if (Model.Status == "Qualified")
+        {
+            <form asp-action="Convert" asp-route-id="@Model.LeadId" method="post" class="d-inline" onsubmit="return confirm('Convert this Qualified lead into a Customer and active Opportunity?');">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm">
+                    <i class="bi bi-arrow-repeat"></i> Convert to Customer & Deal
+                </button>
+            </form>
+        }
+        <a asp-controller="FollowUp" asp-action="Create" asp-route-leadId="@Model.LeadId" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-calendar-plus"></i> Schedule Follow-Up
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-bold"><i class="bi bi-funnel me-2 text-primary"></i>Lead Details</div>
+            <div class="card-body">
+                <dl class="row mb-0 small">
+                    <dt class="col-sm-5 text-muted">Company:</dt>
+                    <dd class="col-sm-7 fw-semibold">@Model.CompanyName</dd>
+
+                    <dt class="col-sm-5 text-muted">Email:</dt>
+                    <dd class="col-sm-7"><a href="mailto:@Model.Email">@Model.Email</a></dd>
+
+                    <dt class="col-sm-5 text-muted">Phone:</dt>
+                    <dd class="col-sm-7">@Model.Phone</dd>
+
+                    <dt class="col-sm-5 text-muted">Source:</dt>
+                    <dd class="col-sm-7"><span class="badge bg-light text-dark border">@Model.Source</span></dd>
+
+                    <dt class="col-sm-5 text-muted">Expected Value:</dt>
+                    <dd class="col-sm-7 fw-bold text-success fs-6">@Model.ExpectedValue.ToString("C0")</dd>
+
+                    <dt class="col-sm-5 text-muted">Status:</dt>
+                    <dd class="col-sm-7">
+                        <span class="badge @(Model.Status == "Qualified" ? "bg-success" : Model.Status == "Converted" ? "bg-purple text-white" : "bg-primary")" style="@(Model.Status == "Converted" ? "background:#8b5cf6;" : "")">
+                            @Model.Status
+                        </span>
+                    </dd>
+
+                    <dt class="col-sm-5 text-muted">Assigned Rep:</dt>
+                    <dd class="col-sm-7">@Model.AssignedTo</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Follow-Ups -->
+    <div class="col-md-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-bold"><i class="bi bi-clock-history me-2 text-primary"></i>Scheduled Follow-Ups</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Remarks</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.FollowUps.Any())
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center py-3 text-muted">No follow-ups recorded for this lead.</td>
+                                </tr>
+                            }
+                            @foreach (var f in Model.FollowUps)
+                            {
+                                <tr>
+                                    <td class="small fw-semibold">@f.FollowUpDate.ToString("MMM dd, yyyy")</td>
+                                    <td><span class="badge bg-light text-dark border">@f.FollowUpType</span></td>
+                                    <td class="small text-muted">@f.Remarks</td>
+                                    <td><span class="badge @(f.Status == "Completed" ? "bg-success" : "bg-warning text-dark")">@f.Status</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

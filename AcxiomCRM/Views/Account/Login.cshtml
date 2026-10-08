@@ -1,0 +1,69 @@
+@model AcxiomCRM.Models.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Sign In";
+    Layout = "_Layout";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-5 col-lg-4">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden my-5">
+                <div class="card-header bg-dark text-white text-center py-4 border-0">
+                    <div class="mb-2">
+                        <i class="bi bi-shield-lock-fill text-primary display-4"></i>
+                    </div>
+                    <h3 class="fw-bold mb-0">Acxiom<span class="text-primary">CRM</span></h3>
+                    <p class="text-secondary small mb-0">Enterprise CRM & Sales Pipeline Portal</p>
+                </div>
+                <div class="card-body p-4 bg-white">
+                    <form asp-controller="Account" asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" id="loginForm">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label fw-semibold small text-muted">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+                                <input asp-for="Email" class="form-control border-start-0" id="loginEmail" placeholder="name@company.com" autofocus />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label fw-semibold small text-muted">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-key text-muted"></i></span>
+                                <input asp-for="Password" class="form-control border-start-0" id="loginPassword" placeholder="••••••••" />
+                            </div>
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="form-check">
+                                <input asp-for="RememberMe" class="form-check-input" />
+                                <label asp-for="RememberMe" class="form-check-label small text-muted">Remember me</label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary py-2 fw-bold shadow-sm">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Portal
+                            </button>
+                        </div>
+                    </form>
+
+
+                </div>
+                <div class="card-footer bg-light text-center py-3 border-top">
+                    <span class="text-muted small">New user? </span>
+                    <a asp-action="Register" class="text-primary small fw-semibold text-decoration-none">Register an Account</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+}

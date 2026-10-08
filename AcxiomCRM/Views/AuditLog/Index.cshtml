@@ -1,0 +1,150 @@
+@model IEnumerable<AcxiomCRM.Models.Entities.AuditLog>
+@{
+    ViewData["Title"] = "Security & Business Audit Trail";
+    Layout = "_Layout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="fw-bold mb-0"><i class="bi bi-clock-history text-primary me-2"></i>Audit Log & Security Trail</h3>
+        <p class="text-muted small mb-0">Immutable, append-only log of all system authentication events, mutations, and role transitions.</p>
+    </div>
+    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 py-2 px-3">
+        <i class="bi bi-shield-lock-fill me-1"></i> Append-Only Security Protection
+    </span>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4 border-0 shadow-sm">
+    <div class="card-body p-3">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-md-3">
+                <input type="text" name="userId" class="form-control" placeholder="Search Actor / User..." value="@ViewBag.CurrentUserId" />
+            </div>
+            <div class="col-md-2">
+                <select name="entityName" class="form-select">
+                    <option value="">All Entities</option>
+                    <option value="Customer" selected="@(ViewBag.CurrentEntityName == "Customer")">Customer</option>
+                    <option value="Lead" selected="@(ViewBag.CurrentEntityName == "Lead")">Lead</option>
+                    <option value="Opportunity" selected="@(ViewBag.CurrentEntityName == "Opportunity")">Opportunity</option>
+                    <option value="FollowUp" selected="@(ViewBag.CurrentEntityName == "FollowUp")">FollowUp</option>
+                    <option value="User" selected="@(ViewBag.CurrentEntityName == "User")">User</option>
+                    <option value="Auth" selected="@(ViewBag.CurrentEntityName == "Auth")">Auth</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="action" class="form-select">
+                    <option value="">All Actions</option>
+                    <option value="Login" selected="@(ViewBag.CurrentAction == "Login")">Login</option>
+                    <option value="FailedLogin" selected="@(ViewBag.CurrentAction == "FailedLogin")">FailedLogin</option>
+                    <option value="Logout" selected="@(ViewBag.CurrentAction == "Logout")">Logout</option>
+                    <option value="Create" selected="@(ViewBag.CurrentAction == "Create")">Create</option>
+                    <option value="Update" selected="@(ViewBag.CurrentAction == "Update")">Update</option>
+                    <option value="Delete" selected="@(ViewBag.CurrentAction == "Delete")">Delete</option>
+                    <option value="Convert" selected="@(ViewBag.CurrentAction == "Convert")">Convert</option>
+                    <option value="RoleChange" selected="@(ViewBag.CurrentAction == "RoleChange")">RoleChange</option>
+                    <option value="Security" selected="@(ViewBag.CurrentAction == "Security")">Security</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="fromDate" class="form-control" value="@ViewBag.CurrentFromDate" placeholder="From Date" />
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="toDate" class="form-control" value="@ViewBag.CurrentToDate" placeholder="To Date" />
+            </div>
+            <div class="col-md-1 d-flex gap-1">
+                <button type="submit" class="btn btn-primary w-100" title="Filter"><i class="bi bi-filter"></i></button>
+                <a asp-action="Index" class="btn btn-outline-secondary" title="Reset"><i class="bi bi-arrow-counterclockwise"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 font-monospace small">
+                <thead class="font-sans-serif">
+                    <tr>
+                        <th>Timestamp (UTC)</th>
+                        <th>Actor / User</th>
+                        <th>Action</th>
+                        <th>Entity</th>
+                        <th>Record ID</th>
+                        <th>IP Address</th>
+                        <th>Change Details / Delta</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted font-sans-serif">No audit events match your filter.</td>
+                        </tr>
+                    }
+                    @foreach (var log in Model)
+                    {
+                        <tr>
+                            <td class="text-nowrap">@log.CreatedDate.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            <td>
+                                <span class="fw-bold text-dark">@log.UserId</span>
+                            </td>
+                            <td>
+                                @if (log.Action == "Login")
+                                {
+                                    <span class="badge bg-success">Login</span>
+                                }
+                                else if (log.Action == "FailedLogin")
+                                {
+                                    <span class="badge bg-danger">FailedLogin</span>
+                                }
+                                else if (log.Action == "Create")
+                                {
+                                    <span class="badge bg-primary">Create</span>
+                                }
+                                else if (log.Action == "Update")
+                                {
+                                    <span class="badge bg-info text-dark">Update</span>
+                                }
+                                else if (log.Action == "Delete")
+                                {
+                                    <span class="badge bg-danger">Delete</span>
+                                }
+                                else if (log.Action == "Convert")
+                                {
+                                    <span class="badge bg-purple" style="background:#8b5cf6; color:white;">Convert</span>
+                                }
+                                else if (log.Action == "Security" || log.Action == "RoleChange")
+                                {
+                                    <span class="badge bg-warning text-dark">@log.Action</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">@log.Action</span>
+                                }
+                            </td>
+                            <td><span class="fw-semibold">@log.EntityName</span></td>
+                            <td><span class="badge bg-light text-dark border">@log.RecordId</span></td>
+                            <td>@log.IpAddress</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(log.OldValue))
+                                {
+                                    <div class="text-danger small text-truncate" style="max-width: 320px;" title="@log.OldValue">
+                                        <strong>Old:</strong> @log.OldValue
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(log.NewValue))
+                                {
+                                    <div class="text-success small text-truncate" style="max-width: 320px;" title="@log.NewValue">
+                                        <strong>New:</strong> @log.NewValue
+                                    </div>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

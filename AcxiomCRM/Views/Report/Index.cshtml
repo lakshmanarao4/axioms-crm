@@ -1,0 +1,240 @@
+@model AcxiomCRM.Models.ViewModels.ReportsIndexViewModel
+@{
+    ViewData["Title"] = "Executive Reporting Suite";
+    Layout = "_Layout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-0"><i class="bi bi-file-earmark-bar-graph-fill text-primary me-2"></i>Executive Reports & KPIs</h3>
+        <p class="text-muted small mb-0">Consolidated intelligence across sales pipeline, lead conversion, rep performance, and audit trails.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="ExportPipelineCsv" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm">
+            <i class="bi bi-download me-1"></i> Export Pipeline CSV
+        </a>
+        <a asp-action="ExportCustomersCsv" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-sm">
+            <i class="bi bi-download me-1"></i> Export Customers CSV
+        </a>
+    </div>
+</div>
+
+<!-- Tabs for Navigating Different Report Types -->
+<ul class="nav nav-pills mb-4 gap-2 bg-white p-2 rounded-3 border shadow-sm" id="reportTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-semibold" id="pipeline-tab" data-bs-toggle="pill" data-bs-target="#pipelineReport" type="button" role="tab">
+            <i class="bi bi-graph-up-arrow me-1"></i> Pipeline Report
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="conversion-tab" data-bs-toggle="pill" data-bs-target="#conversionReport" type="button" role="tab">
+            <i class="bi bi-pie-chart me-1"></i> Conversion Report
+        </button>
+    </li>
+    @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+    {
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold" id="rep-tab" data-bs-toggle="pill" data-bs-target="#repReport" type="button" role="tab">
+                <i class="bi bi-people me-1"></i> Sales Rep Performance
+            </button>
+        </li>
+    }
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="customer-tab" data-bs-toggle="pill" data-bs-target="#customerReport" type="button" role="tab">
+            <i class="bi bi-building me-1"></i> Customer Report
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="followup-tab" data-bs-toggle="pill" data-bs-target="#followupReport" type="button" role="tab">
+            <i class="bi bi-calendar-check me-1"></i> Follow-Up Report
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="reportTabsContent">
+    <!-- 1. Pipeline Report Tab -->
+    <div class="tab-pane fade show active" id="pipelineReport" role="tabpanel">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                <span>Stage-Wise Pipeline Distribution & Weighted Value</span>
+                <span class="badge bg-primary">Total: @Model.PipelineSummary.Sum(p => p.TotalAmount).ToString("C0")</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Pipeline Stage</th>
+                                <th>Total Deals</th>
+                                <th>Total Pipeline Amount</th>
+                                <th>Weighted Value (Amount × Probability)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var stage in Model.PipelineSummary)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="fw-bold">@stage.Stage</span>
+                                    </td>
+                                    <td>@stage.Count</td>
+                                    <td class="fw-semibold text-dark">@stage.TotalAmount.ToString("C0")</td>
+                                    <td class="fw-semibold text-primary">@stage.WeightedAmount.ToString("C0")</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="table-light fw-bold">
+                            <tr>
+                                <td>Consolidated Total</td>
+                                <td>@Model.PipelineSummary.Sum(s => s.Count)</td>
+                                <td class="text-dark">@Model.PipelineSummary.Sum(s => s.TotalAmount).ToString("C0")</td>
+                                <td class="text-primary">@Model.PipelineSummary.Sum(s => s.WeightedAmount).ToString("C0")</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Conversion Report Tab -->
+    <div class="tab-pane fade" id="conversionReport" role="tabpanel">
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center p-4">
+                    <h5 class="text-muted small">Total Captured Leads</h5>
+                    <h2 class="fw-bold text-dark mb-0">@Model.ConversionStats.TotalLeads</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center p-4 border-start border-4 border-success">
+                    <h5 class="text-muted small">Converted Leads</h5>
+                    <h2 class="fw-bold text-success mb-0">@Model.ConversionStats.ConvertedLeads</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center p-4 border-start border-4 border-danger">
+                    <h5 class="text-muted small">Lost Leads</h5>
+                    <h2 class="fw-bold text-danger mb-0">@Model.ConversionStats.LostLeads</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center p-4 border-start border-4 border-primary">
+                    <h5 class="text-muted small">Conversion Rate</h5>
+                    <h2 class="fw-bold text-primary mb-0">@Model.ConversionStats.ConversionRate%</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Sales Rep Performance Tab -->
+    @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+    {
+        <div class="tab-pane fade" id="repReport" role="tabpanel">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-bold">Sales Executive Performance Matrix</div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Sales Representative</th>
+                                    <th>Assigned Leads</th>
+                                    <th>Assigned Opportunities</th>
+                                    <th>Won Deals</th>
+                                    <th>Won Revenue ($)</th>
+                                    <th>Completed Follow-Ups</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var rep in Model.UserPerformance)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@rep.UserEmail</td>
+                                        <td>@rep.AssignedLeads</td>
+                                        <td>@rep.AssignedOpportunities</td>
+                                        <td><span class="badge bg-success">@rep.WonOpportunities</span></td>
+                                        <td class="fw-bold text-success">@rep.WonValue.ToString("C0")</td>
+                                        <td>@rep.CompletedFollowUps</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- 4. Customer Report Tab -->
+    <div class="tab-pane fade" id="customerReport" role="tabpanel">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-bold">Recent Customer Master Accounts</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Customer Name</th>
+                                <th>Company</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model.Customers)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-light text-dark border font-monospace">@c.CustomerCode</span></td>
+                                    <td class="fw-semibold">@c.CustomerName</td>
+                                    <td>@c.CompanyName</td>
+                                    <td>@c.Email</td>
+                                    <td>@c.Phone</td>
+                                    <td><span class="badge bg-success">@c.Status</span></td>
+                                    <td>@c.CreatedDate.ToString("yyyy-MM-dd")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Follow-Up Report Tab -->
+    <div class="tab-pane fade" id="followupReport" role="tabpanel">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-bold">Recent Follow-Up Activity Records</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Remarks</th>
+                                <th>Assigned To</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var f in Model.FollowUps)
+                            {
+                                <tr>
+                                    <td>@f.FollowUpDate.ToString("yyyy-MM-dd")</td>
+                                    <td><span class="badge bg-light text-dark border">@f.FollowUpType</span></td>
+                                    <td><span class="badge @(f.Status == "Completed" ? "bg-success" : "bg-primary")">@f.Status</span></td>
+                                    <td class="small">@f.Remarks</td>
+                                    <td>@f.AssignedTo</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
